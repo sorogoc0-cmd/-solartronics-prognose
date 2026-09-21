@@ -26,9 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: "Solartronics — Produktionsprognose",
       description: "Von Amazon-Verkäufen zur Produktionsliste",
-      images: [{ url: new URL("/og.png", base), width: 1200, height: 630, alt: "Solartronics Produktionsprognose" }],
     },
-    twitter: { card: "summary_large_image", images: [new URL("/og.png", base)] },
   };
 }
 
