@@ -52,10 +52,10 @@ function parseCsv(text: string) {
   return rows;
 }
 
-function forecast(product: Product, productionDays: number, coverageDays: number, safety: number) {
-  const d7 = product.sales7 / 7;
-  const d30 = product.sales30 / 30;
-  const d90 = product.sales90 / 90;
+function forecast(product: Product, productionDays: number, coverageDays: number, safety: number, reportDays = 90) {
+  const d7 = product.sales7 / Math.min(7, reportDays);
+  const d30 = product.sales30 / Math.min(30, reportDays);
+  const d90 = product.sales90 / Math.min(90, reportDays);
   const weightedDaily = d7 * .5 + d30 * .3 + d90 * .2;
   const demand = weightedDaily * (productionDays + coverageDays) * (1 + safety / 100);
   const available = product.fba + product.inbound + product.local;
@@ -68,19 +68,20 @@ function forecast(product: Product, productionDays: number, coverageDays: number
 }
 
 export default function Home() {
-  const [products] = useState(PRODUCT_CATALOG);
+  const [products, setProducts] = useState(PRODUCT_CATALOG);
   const [hasSalesData, setHasSalesData] = useState(false);
+  const [reportDays, setReportDays] = useState(90);
   const [productionDays, setProductionDays] = useState(14);
   const [coverageDays, setCoverageDays] = useState(45);
   const [safety, setSafety] = useState(15);
   const [query, setQuery] = useState("");
   const [section, setSection] = useState("Alle");
-  const [selectedSku, setSelectedSku] = useState(PRODUCTS[0].sku);
+  const [selectedSku, setSelectedSku] = useState(PRODUCT_CATALOG[0].sku);
   const [synced, setSynced] = useState("Noch kein Bericht");
   const [syncing, setSyncing] = useState(false);
   const [notice, setNotice] = useState("");
 
-  const rows = useMemo(() => products.map(product => ({ product, result: forecast(product, productionDays, coverageDays, safety) })), [products, productionDays, coverageDays, safety]);
+  const rows = useMemo(() => products.map(product => ({ product, result: forecast(product, productionDays, coverageDays, safety, reportDays) })), [products, productionDays, coverageDays, safety, reportDays]);
   const filtered = rows.filter(({ product }) => (section === "Alle" || product.section === section) && `${product.name} ${product.sku}`.toLowerCase().includes(query.toLowerCase()));
   const selected = rows.find(row => row.product.sku === selectedSku) || rows[0];
   const totalSets = rows.reduce((sum, row) => sum + row.result.quantity, 0);
@@ -119,9 +120,41 @@ export default function Home() {
     const ignored = dataRows.length - h07Rows.length;
     const known = new Set(products.map(product => product.sku.toUpperCase()));
     const matched = h07Rows.filter(row => known.has((row[skuIndex] || "").trim().toUpperCase())).length;
-    setHasSalesData(false);
-    setSynced("Produktstammdaten geladen");
-    setNotice(`${file.name}: ${h07Rows.length} H07V-K-Zeilen übernommen, ${ignored} andere Produkte ignoriert. Der Bericht enthält keine Verkaufs- und Bestandsdaten; deshalb wurde noch keine Produktionsprognose erstellt.`);
+    const dateIndex = headers.findIndex(name => ["purchase-date", "purchase date", "kaufdatum", "bestelldatum", "datum"].includes(name));
+    const quantityIndex = headers.findIndex(name => ["quantity", "quantity-purchased", "menge", "anzahl", "bestellte einheiten"].includes(name));
+    const statusIndex = headers.findIndex(name => ["order-status", "order status", "bestellstatus", "status"].includes(name));
+    if (dateIndex < 0 || quantityIndex < 0) {
+      setHasSalesData(false);
+      setNotice(`${file.name}: ${h07Rows.length} H07V-K-Zeilen gefunden, ${ignored} andere Produkte ignoriert. Fehlende Pflichtspalten: ${dateIndex < 0 ? "purchase-date" : ""}${dateIndex < 0 && quantityIndex < 0 ? " und " : ""}${quantityIndex < 0 ? "quantity" : ""}.`);
+      event.target.value = "";
+      return;
+    }
+    const validRows = h07Rows.map(row => ({ row, date: new Date(row[dateIndex]), quantity: Number(row[quantityIndex] || 0), status: statusIndex >= 0 ? (row[statusIndex] || "").toLowerCase() : "" }))
+      .filter(item => !Number.isNaN(item.date.getTime()) && Number.isFinite(item.quantity) && !["cancelled", "canceled", "storniert"].includes(item.status));
+    if (!validRows.length) {
+      setHasSalesData(false);
+      setNotice("Keine gültigen H07V-K-Verkaufszeilen gefunden.");
+      event.target.value = "";
+      return;
+    }
+    const latest = new Date(Math.max(...validRows.map(item => item.date.getTime())));
+    const earliest = new Date(Math.min(...validRows.map(item => item.date.getTime())));
+    const days = Math.max(1, Math.ceil((latest.getTime() - earliest.getTime()) / 86400000) + 1);
+    const since = (period: number) => latest.getTime() - (period - 1) * 86400000;
+    const norm = (sku: string) => sku.trim().toUpperCase().replace(/-(FBA|FBM)$/, "");
+    setProducts(current => current.map(product => {
+      const own = validRows.filter(item => norm(item.row[skuIndex] || "") === norm(product.sku));
+      const sum = (period: number) => own.filter(item => item.date.getTime() >= since(period)).reduce((total, item) => total + item.quantity, 0);
+      const sales7 = sum(7), sales30 = sum(30), sales90 = sum(90);
+      const d7 = sales7 / Math.min(7, days), d30 = sales30 / Math.min(30, days);
+      const trend = d30 > 0 ? Math.round((d7 / d30 - 1) * 100) : 0;
+      return { ...product, sales7, sales30, sales90, trend };
+    }));
+    setReportDays(days);
+    setHasSalesData(true);
+    setSynced(latest.toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" }));
+    const cancelled = h07Rows.length - validRows.length;
+    setNotice(`${file.name}: ${h07Rows.length} H07V-K-Zeilen erkannt, ${cancelled} stornierte/ungültige Zeilen ausgeschlossen und ${ignored} andere Produkte ignoriert. Zeitraum: ${days} Tage. Hinweis: Dieser Bestellbericht enthält keinen FBA-Bestand.`);
     event.target.value = "";
   };
 
