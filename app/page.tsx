@@ -10,6 +10,8 @@ type Product = {
   sales30: number;
   sales90: number;
   fba: number;
+  reserved: number;
+  fbaTotal: number;
   inbound: number;
   local: number;
   trend: number;
@@ -17,12 +19,12 @@ type Product = {
 };
 
 const PRODUCT_CATALOG: Product[] = [
-  { sku: "H07V-K-10-Set10-fba", name: "5 × 2 m · Schwarz, Blau, Braun, Grau, Grün-Gelb", section: "10 mm²", sales7: 0, sales30: 0, sales90: 0, fba: 0, inbound: 0, local: 0, trend: 0, recipe: { Schwarz: 2, Blau: 2, Braun: 2, Grau: 2, "Grün-Gelb": 2 } },
-  { sku: "H07V-K-10-Set6-fba", name: "3 × 2 m · Schwarz, Blau, Grün-Gelb", section: "10 mm²", sales7: 0, sales30: 0, sales90: 0, fba: 0, inbound: 0, local: 0, trend: 0, recipe: { Schwarz: 2, Blau: 2, "Grün-Gelb": 2 } },
-  { sku: "H07V-K-6-Set9-fba", name: "5 × 1 m · Schwarz, Blau, Braun, Grau, Grün-Gelb", section: "6 mm²", sales7: 0, sales30: 0, sales90: 0, fba: 0, inbound: 0, local: 0, trend: 0, recipe: { Schwarz: 1, Blau: 1, Braun: 1, Grau: 1, "Grün-Gelb": 1 } },
-  { sku: "H07V-K-10-Set13-fba", name: "5 × 10 m · Schwarz, Blau, Braun, Grau, Grün-Gelb", section: "10 mm²", sales7: 0, sales30: 0, sales90: 0, fba: 0, inbound: 0, local: 0, trend: 0, recipe: { Schwarz: 10, Blau: 10, Braun: 10, Grau: 10, "Grün-Gelb": 10 } },
-  { sku: "H07V-K-6-Set5-fba", name: "3 × 1 m · Schwarz, Blau, Grün-Gelb", section: "6 mm²", sales7: 0, sales30: 0, sales90: 0, fba: 0, inbound: 0, local: 0, trend: 0, recipe: { Schwarz: 1, Blau: 1, "Grün-Gelb": 1 } },
-  { sku: "H07V-K-10-Set12-fba", name: "5 × 5 m · Schwarz, Blau, Braun, Grau, Grün-Gelb", section: "10 mm²", sales7: 0, sales30: 0, sales90: 0, fba: 0, inbound: 0, local: 0, trend: 0, recipe: { Schwarz: 5, Blau: 5, Braun: 5, Grau: 5, "Grün-Gelb": 5 } },
+  { sku: "H07V-K-10-Set10-fba", name: "5 × 2 m · Schwarz, Blau, Braun, Grau, Grün-Gelb", section: "10 mm²", sales7: 0, sales30: 0, sales90: 0, fba: 0, reserved: 0, fbaTotal: 0, inbound: 0, local: 0, trend: 0, recipe: { Schwarz: 2, Blau: 2, Braun: 2, Grau: 2, "Grün-Gelb": 2 } },
+  { sku: "H07V-K-10-Set6-fba", name: "3 × 2 m · Schwarz, Blau, Grün-Gelb", section: "10 mm²", sales7: 0, sales30: 0, sales90: 0, fba: 0, reserved: 0, fbaTotal: 0, inbound: 0, local: 0, trend: 0, recipe: { Schwarz: 2, Blau: 2, "Grün-Gelb": 2 } },
+  { sku: "H07V-K-6-Set9-fba", name: "5 × 1 m · Schwarz, Blau, Braun, Grau, Grün-Gelb", section: "6 mm²", sales7: 0, sales30: 0, sales90: 0, fba: 0, reserved: 0, fbaTotal: 0, inbound: 0, local: 0, trend: 0, recipe: { Schwarz: 1, Blau: 1, Braun: 1, Grau: 1, "Grün-Gelb": 1 } },
+  { sku: "H07V-K-10-Set13-fba", name: "5 × 10 m · Schwarz, Blau, Braun, Grau, Grün-Gelb", section: "10 mm²", sales7: 0, sales30: 0, sales90: 0, fba: 0, reserved: 0, fbaTotal: 0, inbound: 0, local: 0, trend: 0, recipe: { Schwarz: 10, Blau: 10, Braun: 10, Grau: 10, "Grün-Gelb": 10 } },
+  { sku: "H07V-K-6-Set5-fba", name: "3 × 1 m · Schwarz, Blau, Grün-Gelb", section: "6 mm²", sales7: 0, sales30: 0, sales90: 0, fba: 0, reserved: 0, fbaTotal: 0, inbound: 0, local: 0, trend: 0, recipe: { Schwarz: 1, Blau: 1, "Grün-Gelb": 1 } },
+  { sku: "H07V-K-10-Set12-fba", name: "5 × 5 m · Schwarz, Blau, Braun, Grau, Grün-Gelb", section: "10 mm²", sales7: 0, sales30: 0, sales90: 0, fba: 0, reserved: 0, fbaTotal: 0, inbound: 0, local: 0, trend: 0, recipe: { Schwarz: 5, Blau: 5, Braun: 5, Grau: 5, "Grün-Gelb": 5 } },
 ];
 
 const COLORS: Record<string, string> = { Blau: "#2563eb", Braun: "#8b5a2b", "Grün-Gelb": "#a6cf16", Grau: "#94a3b8", Schwarz: "#20262d" };
@@ -58,7 +60,8 @@ function forecast(product: Product, productionDays: number, coverageDays: number
   const d90 = product.sales90 / Math.min(90, reportDays);
   const weightedDaily = d7 * .5 + d30 * .3 + d90 * .2;
   const demand = weightedDaily * (productionDays + coverageDays) * (1 + safety / 100);
-  const available = product.fba + product.inbound + product.local;
+  // Reservierter Bestand und Zulauf werden bewusst nicht als sofort verfügbar gerechnet.
+  const available = product.fba;
   return {
     daily: weightedDaily,
     demand: Math.ceil(demand),
@@ -78,7 +81,6 @@ export default function Home() {
   const [section, setSection] = useState("Alle");
   const [selectedSku, setSelectedSku] = useState(PRODUCT_CATALOG[0].sku);
   const [synced, setSynced] = useState("Noch kein Bericht");
-  const [syncing, setSyncing] = useState(false);
   const [notice, setNotice] = useState("");
 
   const rows = useMemo(() => products.map(product => ({ product, result: forecast(product, productionDays, coverageDays, safety, reportDays) })), [products, productionDays, coverageDays, safety, reportDays]);
@@ -98,11 +100,6 @@ export default function Home() {
     return [...grouped.values()].filter(row => row.meters > 0).sort((a, b) => a.section.localeCompare(b.section) || a.color.localeCompare(b.color));
   }, [rows]);
 
-  const sync = () => {
-    setSyncing(true); setNotice("");
-    window.setTimeout(() => { setSyncing(false); setSynced("gerade eben"); setNotice("Die Demo-Daten wurden neu geladen und die Empfehlungen aktualisiert."); }, 900);
-  };
-
   const importCsv = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -118,19 +115,26 @@ export default function Home() {
     const dataRows = rows.slice(1).filter(row => row.some(value => value !== ""));
     const h07Rows = dataRows.filter(row => (row[skuIndex] || "").trim().toUpperCase().startsWith(SKU_PREFIX));
     const ignored = dataRows.length - h07Rows.length;
-    const known = new Set(products.map(product => product.sku.toUpperCase()));
-    const matched = h07Rows.filter(row => known.has((row[skuIndex] || "").trim().toUpperCase())).length;
     const dateIndex = headers.findIndex(name => ["purchase-date", "purchase date", "kaufdatum", "bestelldatum", "datum"].includes(name));
     const quantityIndex = headers.findIndex(name => ["quantity", "quantity-purchased", "menge", "anzahl", "bestellte einheiten"].includes(name));
     const statusIndex = headers.findIndex(name => ["order-status", "order status", "bestellstatus", "status"].includes(name));
+    const stockColumns = {
+      fulfillable: headers.indexOf("afn-fulfillable-quantity"),
+      reserved: headers.indexOf("afn-reserved-quantity"),
+      total: headers.indexOf("afn-total-quantity"),
+      inboundWorking: headers.indexOf("afn-inbound-working-quantity"),
+      inboundShipped: headers.indexOf("afn-inbound-shipped-quantity"),
+      inboundReceiving: headers.indexOf("afn-inbound-receiving-quantity"),
+    };
     if (dateIndex < 0 || quantityIndex < 0) {
       setHasSalesData(false);
       setNotice(`${file.name}: ${h07Rows.length} H07V-K-Zeilen gefunden, ${ignored} andere Produkte ignoriert. Fehlende Pflichtspalten: ${dateIndex < 0 ? "purchase-date" : ""}${dateIndex < 0 && quantityIndex < 0 ? " und " : ""}${quantityIndex < 0 ? "quantity" : ""}.`);
       event.target.value = "";
       return;
     }
-    const validRows = h07Rows.map(row => ({ row, date: new Date(row[dateIndex]), quantity: Number(row[quantityIndex] || 0), status: statusIndex >= 0 ? (row[statusIndex] || "").toLowerCase() : "" }))
-      .filter(item => !Number.isNaN(item.date.getTime()) && Number.isFinite(item.quantity) && !["cancelled", "canceled", "storniert"].includes(item.status));
+    const invalidStatuses = ["cancelled", "canceled", "storniert", "refunded", "erstattet"];
+    const validRows = h07Rows.map(row => ({ row, date: new Date(row[dateIndex]), quantity: Number(row[quantityIndex] || 0), status: statusIndex >= 0 ? (row[statusIndex] || "").trim().toLowerCase() : "" }))
+      .filter(item => !Number.isNaN(item.date.getTime()) && Number.isFinite(item.quantity) && !invalidStatuses.includes(item.status));
     if (!validRows.length) {
       setHasSalesData(false);
       setNotice("Keine gültigen H07V-K-Verkaufszeilen gefunden.");
@@ -142,19 +146,32 @@ export default function Home() {
     const days = Math.max(1, Math.ceil((latest.getTime() - earliest.getTime()) / 86400000) + 1);
     const since = (period: number) => latest.getTime() - (period - 1) * 86400000;
     const norm = (sku: string) => sku.trim().toUpperCase().replace(/-(FBA|FBM)$/, "");
+    const stockValue = (ownRows: string[][], index: number) => {
+      if (index < 0) return 0;
+      const value = ownRows.map(row => row[index]).find(raw => raw !== undefined && raw.trim() !== "" && Number.isFinite(Number(raw.replace(",", "."))));
+      return value === undefined ? 0 : Math.max(0, Number(value.replace(",", ".")));
+    };
     setProducts(current => current.map(product => {
       const own = validRows.filter(item => norm(item.row[skuIndex] || "") === norm(product.sku));
+      // Les valeurs FBA sont des instantanés répétés sur les lignes de commande : une seule
+      // valeur par SKU est lue ici, elles ne sont jamais additionnées.
+      const ownStockRows = h07Rows.filter(row => norm(row[skuIndex] || "") === norm(product.sku));
       const sum = (period: number) => own.filter(item => item.date.getTime() >= since(period)).reduce((total, item) => total + item.quantity, 0);
       const sales7 = sum(7), sales30 = sum(30), sales90 = sum(90);
       const d7 = sales7 / Math.min(7, days), d30 = sales30 / Math.min(30, days);
       const trend = d30 > 0 ? Math.round((d7 / d30 - 1) * 100) : 0;
-      return { ...product, sales7, sales30, sales90, trend };
+      const fba = stockValue(ownStockRows, stockColumns.fulfillable);
+      const reserved = stockValue(ownStockRows, stockColumns.reserved);
+      const fbaTotal = stockValue(ownStockRows, stockColumns.total);
+      const inbound = stockValue(ownStockRows, stockColumns.inboundWorking) + stockValue(ownStockRows, stockColumns.inboundShipped) + stockValue(ownStockRows, stockColumns.inboundReceiving);
+      return { ...product, sales7, sales30, sales90, trend, fba, reserved, fbaTotal, inbound };
     }));
     setReportDays(days);
     setHasSalesData(true);
     setSynced(latest.toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" }));
     const cancelled = h07Rows.length - validRows.length;
-    setNotice(`${file.name}: ${h07Rows.length} H07V-K-Zeilen erkannt, ${cancelled} stornierte/ungültige Zeilen ausgeschlossen und ${ignored} andere Produkte ignoriert. Zeitraum: ${days} Tage. Hinweis: Dieser Bestellbericht enthält keinen FBA-Bestand.`);
+    const detectedStockColumns = Object.values(stockColumns).filter(index => index >= 0).length;
+    setNotice(`${file.name}: ${h07Rows.length} H07V-K-Zeilen erkannt, ${cancelled} stornierte/ungültige Zeilen ausgeschlossen und ${ignored} andere Produkte ignoriert. Zeitraum: ${days} Tage. ${detectedStockColumns ? `${detectedStockColumns} FBA-Bestandsspalten erkannt.` : "Keine FBA-Bestandsspalten erkannt."}`);
     event.target.value = "";
   };
 
@@ -196,18 +213,20 @@ export default function Home() {
         <Range label="Produktionsvorlauf" value={productionDays} min={3} max={45} suffix="Tage" onChange={setProductionDays} />
         <Range label="Reichweite nach Lieferung" value={coverageDays} min={14} max={90} suffix="Tage" onChange={setCoverageDays} />
         <Range label="Sicherheitsbestand" value={safety} min={0} max={40} suffix="%" onChange={setSafety} />
-        <div className="formula-card"><span>AKTIVE FORMEL</span><p>Prognostizierter Bedarf für <b>{productionDays + coverageDays} Tage</b>, plus {safety}% Sicherheit, abzüglich FBA-Bestand, Zulauf und lokalem Bestand.</p></div>
+        <div className="formula-card"><span>AKTIVE FORMEL</span><p>Prognostizierter Bedarf für <b>{productionDays + coverageDays} Tage</b>, plus {safety}% Sicherheit, abzüglich des verfügbaren FBA-Bestands. Reserviert und Zulauf werden separat angezeigt.</p></div>
         <button className="reset" onClick={() => { setProductionDays(14); setCoverageDays(45); setSafety(15); }}>Einstellungen zurücksetzen</button>
       </aside>
 
       <div className="recommendations">
         <div className="section-head"><div className="section-title"><p>Empfehlungen</p><h2>Produktionsplan</h2></div><div className="filters"><input aria-label="SKU suchen" placeholder="SKU suchen…" value={query} onChange={e => setQuery(e.target.value)} /><select aria-label="Nach Querschnitt filtern" value={section} onChange={e => setSection(e.target.value)}><option>Alle</option><option>6 mm²</option><option>10 mm²</option></select></div></div>
         <div className="product-table" role="table" aria-label="Produktionsempfehlungen">
-          <div className="table-row table-header" role="row"><span>SKU / Inhalt</span><span>Verkauf 30 T.</span><span>Verfügbar</span><span>Trend</span><span>Produzieren</span></div>
+          <div className="table-row table-header" role="row"><span>SKU / Inhalt</span><span>Verkauf 30 T.</span><span>Verfügbar</span><span>Reserviert</span><span>Zulauf</span><span>Trend</span><span>Produzieren</span></div>
           {filtered.map(({ product, result }) => <button className={`table-row ${selected.product.sku === product.sku ? "active" : ""}`} key={product.sku} onClick={() => setSelectedSku(product.sku)} role="row">
             <span className="product"><i>{product.section.replace(" mm²", "")}</i><span><b>{product.sku}</b><small>{product.name}</small></span></span>
             <span><b>{product.sales30}</b><small>{(product.sales30 / 30).toFixed(1)} / Tag</small></span>
-            <span><b>{result.available}</b><small>{product.fba} FBA + {product.inbound} Zulauf</small></span>
+            <span className="stock-edit"><input aria-label={`Verfügbarer FBA-Bestand für ${product.sku}`} type="number" min="0" step="1" value={product.fba} onClick={event => event.stopPropagation()} onChange={event => { const fba = Math.max(0, Number(event.target.value) || 0); setProducts(current => current.map(item => item.sku === product.sku ? { ...item, fba } : item)); }} /><small>FBA, manuell änderbar</small></span>
+            <span><b>{product.reserved}</b><small>nicht verfügbar</small></span>
+            <span><b>{product.inbound}</b><small>in Vorbereitung/Transit</small></span>
             <span className={product.trend >= 0 ? "trend-up" : "trend-down"}>{product.trend >= 0 ? "↗" : "↘"} {Math.abs(product.trend)}%</span>
             <span className="quantity"><b>{result.quantity}</b><small>sets</small></span>
           </button>)}
