@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bedarfsprognose – Solartronics</title>
+<style>
+:root{
+  --bg1:#0a1a3a; --bg2:#0d3b3d;
+  --ink:#eaf0ff; --mute:#94a6cc; --line:rgba(255,255,255,.12);
+  --card:rgba(255,255,255,.055); --card2:rgba(255,255,255,.09);
+  --lime:#c8f23d; --lime-ink:#10200a;
+  --warn:#ffb84d; --bad:#ff7b7b; --good:#5fdc93;
+}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{color-scheme:dark}
+body{
+  margin:0; min-height:100vh; color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:linear-gradient(135deg,var(--bg1) 0%,#0b2a4a 55%,var(--bg2) 100%) fixed;
+  line-height:1.45;
+}
+.wrap{max-width:1120px; margin:0 auto; padding:0 22px 64px}
+header.top{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; padding:22px 0}
+header.top a{white-space:nowrap}
+.brand{font-size:20px; letter-spacing:-.02em; font-weight:500}
+.brand b{font-weight:800}
+.brand .sep{color:var(--mute); margin:0 8px}
+.brand em{font-style:normal; font-weight:800; color:var(--lime)}
+a{color:var(--mute); text-decoration:none}
+a:hover{color:var(--ink)}
+h1{font-size:clamp(30px,5vw,46px); line-height:1.05; letter-spacing:-.035em; margin:18px 0 10px; font-weight:800}
+h2{font-size:22px; letter-spacing:-.02em; margin:0 0 4px; font-weight:750}
+.sub{color:var(--mute); margin:0 0 18px; max-width:64ch}
+section{margin-top:34px}
+.card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px}
+button,.btn{
+  font:inherit; font-weight:650; cursor:pointer; border-radius:12px; padding:11px 18px;
+  border:1px solid var(--line); background:var(--card2); color:var(--ink);
+}
+button:hover,.btn:hover{background:rgba(255,255,255,.14)}
+button.primary,.btn.primary{background:var(--lime); color:var(--lime-ink); border-color:transparent}
+button.primary:hover,.btn.primary:hover{background:#d6ff4d}
+button:focus-visible,input:focus-visible,select:focus-visible,.drop:focus-visible{outline:2px solid var(--lime); outline-offset:2px}
+.row{display:flex; flex-wrap:wrap; gap:12px; align-items:center}
+
+/* Start */
+.drop{
+  margin-top:26px; border:1.5px dashed rgba(200,242,61,.5); border-radius:18px; padding:34px 22px;
+  text-align:center; background:rgba(200,242,61,.04);
+}
+.drop.over{background:rgba(200,242,61,.12)}
+.drop p{margin:0 0 16px; color:var(--mute)}
+.drop .row{justify-content:center}
+.note{color:var(--mute); font-size:14px; margin-top:14px}
+
+/* Banner */
+.banner{border-radius:14px; padding:12px 16px; margin-bottom:6px; border:1px solid var(--line); font-size:15px}
+.banner.demo{background:rgba(255,184,77,.12); border-color:rgba(255,184,77,.45); color:#ffd9a0}
+.banner.ok{background:rgba(95,220,147,.1); border-color:rgba(95,220,147,.35); color:#bdf3d3}
+.banner b{font-weight:750}
+
+/* Steuerung */
+.controls{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px}
+.field label{display:block; font-size:14px; color:var(--mute); margin-bottom:6px}
+.field input,.field select{
+  width:100%; font:inherit; font-size:18px; font-weight:650; color:var(--ink);
+  background:rgba(0,0,0,.25); border:1px solid var(--line); border-radius:10px; padding:9px 12px;
+}
+.field small{display:block; color:var(--mute); margin-top:5px; font-size:13px}
+
+/* Tabellen */
+.scroll{overflow-x:auto; border-radius:14px; border:1px solid var(--line); background:var(--card)}
+table{border-collapse:collapse; width:100%; min-width:640px}
+th,td{padding:12px 14px; text-align:left; border-bottom:1px solid var(--line); vertical-align:middle}
+th{font-size:13px; font-weight:600; color:var(--mute); white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right; font-variant-numeric:tabular-nums}
+td.big{font-size:20px; font-weight:800; color:var(--lime)}
+tfoot td{font-weight:750; background:rgba(255,255,255,.05)}
+.badge{display:inline-block; padding:2px 9px; border-radius:7px; font-size:13px; font-weight:650; margin:2px 4px 2px 0; color:#fff}
+.b-Blau{background:#2a6fe0}.b-Braun{background:#7b4a2c}.b-Gelbgrün{background:#8a9a17}.b-Grau{background:#6b7280}.b-Schwarz{background:#000;border:1px solid #444}
+.b-other{background:#3a4a6b}
+.up{color:var(--good)}.down{color:var(--bad)}.flat{color:var(--mute)}
+.tag{font-size:12px; color:var(--mute)}
+.stock{width:92px; font:inherit; font-weight:650; text-align:right; color:var(--ink); background:rgba(0,0,0,.25); border:1px solid var(--line); border-radius:8px; padding:6px 8px}
+.warn{color:var(--warn)}
+.head-actions{display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 14px}
+
+/* Chart */
+.chart{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px}
+.chart svg{width:100%; height:auto; display:block}
+.legend{display:flex; gap:18px; color:var(--mute); font-size:14px; margin-top:8px; flex-wrap:wrap}
+.legend i{display:inline-block; width:22px; height:0; border-top:3px solid var(--lime); vertical-align:middle; margin-right:7px}
+.legend i.f{border-top:3px dashed #ffffff}
+
+details{margin-top:34px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 18px}
+summary{cursor:pointer; font-weight:700}
+details ol{margin:12px 0 0; padding-left:20px; color:#cdd8f2}
+details li{margin:6px 0}
+
+@media (max-width:640px){ .wrap{padding:0 14px 48px} }
+@media print{
+  body{background:#fff; color:#000}
+  header.top,.no-print,details,.controls-sec,.chart-sec,.table-sec,.banner{display:none!important}
+  .scroll{border:none; background:none}
+  th,td{color:#000; border-color:#999} td.big{color:#000}
+  .badge{color:#000!important; background:none!important; border:1px solid #000}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">solar<b>tronics</b><span class="sep">/</span><em>Bedarfsprognose</em></div>
+  </header>
+  <main id="app"></main>
+</div>
+<input type="file" id="file" accept=".csv,.txt,text/csv" hidden>
+
+<script>
+/* =====================================================================
+   KONFIGURATION
+   Les articles au format H07V-K-<section>-Set<numéro>-fba sont reconnus
+   automatiquement (ex. H07V-K-10-Set10-fba → SET10, 10 mm², 5 couleurs × 2 m).
+   Pour un article différent, ajouter une ligne ici :
+     'MON-SKU': { set:'SET14', qs:'10 mm²', colors:['Blau','Schwarz'], mPerColor:2 },
+   ===================================================================== */
+const SKU_MAP = {
+};
+const COLORS_DEFAULT = ['Blau','Braun','Gelbgrün','Grau','Schwarz'];
+const M_PER_COLOR_DEFAULT = 2;
+const STORE_KEY = 'solartronics.bedarfsprognose.v1';
+
+/* ---------------------------- Datum-Helfer --------------------------- */
+const DAY = 86400000;
+const dn = (y,m,d) => Math.floor(Date.UTC(y,m-1,d)/DAY);
+const dnToIso = n => new Date(n*DAY).toISOString().slice(0,10);
+const isoToDn = s => { const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s); return m ? dn(+m[1],+m[2],+m[3]) : null; };
+const pad2 = n => String(n).padStart(2,'0');
+const dnToDe = n => { const d=new Date(n*DAY); return pad2(d.getUTCDate())+'.'+pad2(d.getUTCMonth()+1)+'.'+d.getUTCFullYear(); };
+const dnToShort = n => { const d=new Date(n*DAY); return pad2(d.getUTCDate())+'.'+pad2(d.getUTCMonth()+1)+'.'; };
+const monthOf = n => new Date(n*DAY).getUTCMonth()+1;
+const weekdayOf = n => new Date(n*DAY).getUTCDay();
+
+function parseDate(raw){
+  if(raw==null) return null;
+  const s=String(raw).trim().replace(/^"|"$/g,'');
+  let m, y, mo, d;
+  if((m=/^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s))){ y=+m[1]; mo=+m[2]; d=+m[3]; }
+  else if((m=/^(\d{1,2})\.(\d{1,2})\.(\d{4})/.exec(s))){ d=+m[1]; mo=+m[2]; y=+m[3]; }
+  else if((m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(s))){
+    const a=+m[1], b=+m[2]; y=+m[3];
+    if(a>12){ d=a; mo=b; } else if(b>12){ mo=a; d=b; } else { d=a; mo=b; }
+  } else return null;
+  if(mo<1||mo>12||d<1||d>31) return null;
+  const t=new Date(Date.UTC(y,mo-1,d));
+  if(t.getUTCMonth()!==mo-1) return null;
+  return dn(y,mo,d);
+}
+function parseUnits(raw){
+  let s=String(raw==null?'':raw).trim().replace(/\s/g,'');
+  if(s==='') return NaN;
+  if(/^-?\d{1,3}(\.\d{3})+$/.test(s)) s=s.replace(/\./g,'');
+  else s=s.replace(',','.');
+  const v=parseFloat(s);
+  return isFinite(v) ? Math.round(v) : NaN;
+}
+
+/* ------------------------------ CSV lesen ---------------------------- */
+function detectDelimiter(text){
+  const lines=text.split(/\r\n|\r|\n/).filter(l=>l.trim()!=='').slice(0,8);
+  const cnt={';':0,',':0,'\t':0};
+  for(const l of lines) for(const k in cnt) cnt[k]+=l.split(k).length-1;
+  return Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0] || ';';
+}
+function parseDelimited(text, delim){
+  const rows=[]; let row=[], cur='', inQ=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQ){
+      if(c==='"'){ if(text[i+1]==='"'){ cur+='"'; i++; } else inQ=false; }
+      else cur+=c;
+    } else if(c==='"') inQ=true;
+    else if(c===delim){ row.push(cur); cur=''; }
+    else if(c==='\n'||c==='\r'){
+      if(c==='\r'&&text[i+1]==='\n') i++;
+      row.push(cur); cur='';
+      if(row.length>1||row[0]!=='') rows.push(row);
+      row=[];
+    } else cur+=c;
+  }
+  if(cur!==''||row.length){ row.push(cur); if(row.length>1||row[0]!=='') rows.push(row); }
+  return rows;
+}
+const norm = s => String(s==null?'':s).replace(/^\ufeff/,'').toLowerCase().replace(/["']/g,'').trim();
+function findCol(h, exact, contains, exclude){
+  for(const e of exact){ const i=h.indexOf(e); if(i>=0) return i; }
+  for(let i=0;i<h.length;i++){
+    if(exclude.some(x=>h[i].includes(x))) continue;
+    if(contains.some(x=>h[i].includes(x))) return i;
+  }
+  return -1;
+}
+const COLS = {
+  date:{ exact:['datum','date','bestelldatum','kaufdatum','purchase-date','order-date','purchase date','order date'],
+         contains:['datum','date'], exclude:['versand','ship','update','geändert','last','delivery','liefer'] },
+  sku:{  exact:['sku','seller-sku','seller sku','händler-sku','haendler-sku','msku','artikelnummer'],
+         contains:['sku'], exclude:['fnsku'] },
+  asin:{ exact:['asin','(untergeordnete) asin','(child) asin'], contains:['asin'], exclude:['übergeordnete','parent'] },
+  units:{exact:['bestellte einheiten','units ordered','quantity','quantity-purchased','menge','anzahl','einheiten','verkaufte einheiten','bestellte artikel','ordered units'],
+         contains:['einheiten','units','menge','quantity','anzahl'], exclude:['b2b','umsatz','sales','prozent','%','pro bestellung','durchschn','revenue'] }
+};
+/* Amazon-FBA-Bestandsspalten (Rapport "Alle Bestellungen" mit FBA-Lagerbestand). Nur exakte,
+   stabile Amazon-Spaltennamen – wenn sie fehlen, bleibt der FBA-Bestand einfach leer (kein Fehler). */
+const STOCK_COLS = {
+  channel:['fulfillment-channel'],
+  status:['order-status'],
+  itemStatus:['item-status'],
+  updated:['last-updated-date'],
+  verf:['afn-fulfillable-quantity'],
+  reserved:['afn-reserved-quantity'],
+  total:['afn-total-quantity'],
+  working:['afn-inbound-working-quantity'],
+  shipped:['afn-inbound-shipped-quantity'],
+  receiving:['afn-inbound-receiving-quantity']
+};
+const CANCEL_RE = /storn|cancel|annul|refund|erstatt|rembours/;
+function findExact(h, names){ for(const n of names){ const i=h.indexOf(n); if(i>=0) return i; } return -1; }
+
+/* Liefert { data:{sku:{iso:units}}, fba:{sku:{verf,reserved,zulauf,total}}, info } oder wirft einen Error */
+function buildFromCsv(text){
+  const rows=parseDelimited(text, detectDelimiter(text));
+  if(rows.length<2) throw new Error('Die Datei enthält keine Datenzeilen.');
+  let hi=-1, c=null;
+  for(let i=0;i<Math.min(15,rows.length);i++){
+    const h=rows[i].map(norm);
+    const date=findCol(h,COLS.date.exact,COLS.date.contains,COLS.date.exclude);
+    const units=findCol(h,COLS.units.exact,COLS.units.contains,COLS.units.exclude);
+    if(date>=0&&units>=0&&date!==units){
+      let sku=findCol(h,COLS.sku.exact,COLS.sku.contains,COLS.sku.exclude);
+      if(sku<0) sku=findCol(h,COLS.asin.exact,COLS.asin.contains,COLS.asin.exclude);
+      const s={
+        date, units, sku,
+        channel:findExact(h,STOCK_COLS.channel), status:findExact(h,STOCK_COLS.status),
+        itemStatus:findExact(h,STOCK_COLS.itemStatus), updated:findExact(h,STOCK_COLS.updated),
+        verf:findExact(h,STOCK_COLS.verf), reserved:findExact(h,STOCK_COLS.reserved),
+        total:findExact(h,STOCK_COLS.total), working:findExact(h,STOCK_COLS.working),
+        shipped:findExact(h,STOCK_COLS.shipped), receiving:findExact(h,STOCK_COLS.receiving)
+      };
+      hi=i; c=s; break;
+    }
+  }
+  if(hi<0){
+    const first=rows[0].map(x=>x.trim()).filter(Boolean).slice(0,12).join(' | ');
+    throw new Error('Spalten nicht erkannt. Benötigt werden mindestens ein Datum und eine Menge (z. B. „Bestelldatum“ und „Bestellte Einheiten“). Gefundene Spalten: '+first);
+  }
+  const data={}, fba={}, fbaSeen={};
+  let used=0, skipped=0, cancelled=0, minD=Infinity, maxD=-Infinity;
+  for(let i=hi+1;i<rows.length;i++){
+    const r=rows[i];
+    const sku = c.sku>=0 ? String(r[c.sku]||'').trim() : 'Alle Artikel';
+
+    // --- FBA-Bestand: einmal je SKU übernehmen, nie über Zeilen aufsummieren ---
+    if(sku && c.verf>=0){
+      const chan = c.channel>=0 ? norm(r[c.channel]) : '';
+      const isFba = c.channel<0 || chan==='amazon';
+      const verfRaw = parseUnits(r[c.verf]);
+      if(isFba && isFinite(verfRaw)){
+        const upd = c.updated>=0 ? (parseDate(r[c.updated])||0) : 0;
+        if(!fbaSeen[sku] || upd>=fbaSeen[sku]){
+          fbaSeen[sku]=upd;
+          const g=(idx)=>{ const v=c[idx]>=0?parseUnits(r[c[idx]]):NaN; return isFinite(v)?v:0; };
+          const working=g('working'), shipped=g('shipped'), receiving=g('receiving');
+          fba[sku]={ verf:verfRaw, reserved:g('reserved'), total:g('total'), working, shipped, receiving, zulauf:working+shipped+receiving };
+        }
+      }
+    }
+
+    // --- Verkäufe: nur gültige, nicht stornierte Bestellzeilen ---
+    const st1 = c.status>=0 ? String(r[c.status]||'') : '';
+    const st2 = c.itemStatus>=0 ? String(r[c.itemStatus]||'') : '';
+    if(CANCEL_RE.test(st1.toLowerCase())||CANCEL_RE.test(st2.toLowerCase())){ cancelled++; continue; }
+    const d=parseDate(r[c.date]); const u=parseUnits(r[c.units]);
+    if(d==null||!(u>0)){ skipped++; continue; }
+    if(!sku){ skipped++; continue; }
+    const iso=dnToIso(d);
+    (data[sku]=data[sku]||{})[iso]=((data[sku]||{})[iso]||0)+u;
+    used++; if(d<minD) minD=d; if(d>maxD) maxD=d;
+  }
+  if(!used) throw new Error('Keine gültigen Zeilen gefunden (Datum und Menge > 0). '+skipped+' Zeilen übersprungen.');
+  return { data, fba, info:{ used, skipped, cancelled, from:minD, to:maxD, hasSku:c.sku>=0, hasStock:c.verf>=0 } };
+}
+
+/* ------------------------------ Demo-Daten --------------------------- */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function demoData(endDn){
+  const rnd=mulberry32(20260921);
+  // [SKU, Grundniveau Stück/Tag, Alter in Tagen]
+  const defs=[
+    ['H07V-K-10-Set10-fba',4.2,250],['H07V-K-10-Set9-fba',2.6,300],['H07V-K-10-Set6-fba',1.4,180],
+    ['H07V-K-10-Set11-fba',2.0,330],['H07V-K-10-Set12-fba',1.0,140],['H07V-K-10-Set13-fba',2.5,220],
+    ['H07V-K-6-Set5-fba',1.6,520],['H07V-K-6-Set9-fba',0.8,120]
+  ];
+  const season={1:.55,2:.8,3:.9,4:1.6,5:1.3,6:1.35,7:1.3,8:1.0,9:1.2,10:.9,11:.8,12:.7};
+  const data={};
+  for(const [sku,base,age] of defs){
+    data[sku]={};
+    for(let d=endDn-age+1; d<=endDn; d++){
+      const a=d-(endDn-age+1);
+      const ramp=Math.min(1,(a+1)/45);
+      const wk=(weekdayOf(d)===0||weekdayOf(d)===6)?0.8:1.05;
+      const mean=base*ramp*season[monthOf(d)]*wk;
+      const u=Math.round(mean*(0.4+1.2*rnd()));
+      if(u>0) data[sku][dnToIso(d)]=u;
+    }
+  }
+  return data;
+}
+const DEMO_STOCK = {'H07V-K-10-Set10-fba':70,'H07V-K-10-Set9-fba':40,'H07V-K-10-Set6-fba':15,'H07V-K-10-Set11-fba':60,'H07V-K-10-Set12-fba':10,'H07V-K-10-Set13-fba':80,'H07V-K-6-Set5-fba':25,'H07V-K-6-Set9-fba':30};
+const DEMO_FBA = Object.fromEntries(Object.entries(DEMO_STOCK).map(([sku,verf],i)=>{
+  const reserved=Math.round(verf*0.08), working=i%3===0?Math.round(verf*0.15):0, shipped=i%2===0?Math.round(verf*0.1):0, receiving=0;
+  return [sku,{ verf, reserved, working, shipped, receiving, zulauf:working+shipped+receiving, total:verf+reserved }];
+}));
+
+/* ------------------------------ Prognose ----------------------------- */
+function toMaps(data){
+  const maps={}; let ref=-Infinity;
+  for(const sku of Object.keys(data)){
+    const m={};
+    for(const iso of Object.keys(data[sku])){ const d=isoToDn(iso); if(d!=null){ m[d]=data[sku][iso]; if(d>ref) ref=d; } }
+    maps[sku]=m;
+  }
+  return { maps, ref };
+}
+function sumRange(m,a,b){ let s=0; for(let d=a; d<=b; d++){ const v=m[d]; if(v) s+=v; } return s; }
+function firstDay(m){ let f=Infinity; for(const k in m){ const n=+k; if(n<f) f=n; } return f; }
+
+function forecastSku(m, ref, H, safety, stock){
+  const hist=Math.max(1, ref-firstDay(m)+1);
+  const r={};
+  for(const n of [7,30,90]){ const eff=Math.min(n,hist); r[n]=sumRange(m,ref-eff+1,ref)/eff; }
+  const base=0.5*r[7]+0.3*r[30]+0.2*r[90];
+  let factor=1, ratio=null;
+  if(hist>=395){
+    const ly30=sumRange(m,ref-394,ref-365);
+    const lyH =sumRange(m,ref-364,ref-365+H);
+    if(ly30>0){ ratio=Math.min(1.8,Math.max(0.6,(lyH/H)/(ly30/30))); factor=1+0.5*(ratio-1); }
+  }
+  const daily=base*factor;
+  const demand=daily*H;
+  const target=demand*(1+safety/100);
+  const send=Math.max(0,Math.ceil(target-stock-1e-9));
+  return { r7:r[7], r30:r[30], r90:r[90], base, factor, ratio, daily, demand, target, stock,
+           send, cover: daily>0 ? stock/daily : null, trend: r[30]>0 ? r[7]/r[30]-1 : null, hist };
+}
+
+function skuInfo(sku){
+  if(SKU_MAP[sku]){
+    const x=SKU_MAP[sku];
+    return { set:x.set||sku, qs:x.qs||'–', colors:x.colors||COLORS_DEFAULT, mPerColor:x.mPerColor!=null?x.mPerColor:M_PER_COLOR_DEFAULT, known:true };
+  }
+  const m=/H07V-K-(\d+(?:[.,]\d+)?)-Set(\d+)/i.exec(sku);
+  if(m) return { set:'SET'+m[2], qs:m[1].replace(',','.')+' mm²', colors:COLORS_DEFAULT, mPerColor:M_PER_COLOR_DEFAULT, known:true };
+  return { set:sku, qs:'–', colors:[], mPerColor:0, known:false };
+}
+
+function compute(state, maps, ref){
+  const s=state.settings;
+  const H=s.lead+s.cover;
+  const fba=state.fba||{};
+  const skus=Object.keys(maps).sort((a,b)=>a.localeCompare(b,'de',{numeric:true}));
+  const items=skus.map(sku=>({
+    sku, info:skuInfo(sku), fba:fba[sku]||null,
+    f:forecastSku(maps[sku],ref,H,s.safety,Math.max(0,+s.stock[sku]||0))
+  }));
+  const groups={};
+  for(const it of items){
+    if(it.f.send<=0) continue;
+    const key=it.info.set+'|'+it.info.qs;
+    const g=groups[key]=groups[key]||{ set:it.info.set, qs:it.info.qs, colors:it.info.colors, mPerColor:it.info.mPerColor, known:it.info.known, sets:0 };
+    g.sets+=it.f.send;
+  }
+  const list=Object.values(groups).map(g=>({ ...g, perColor:g.sets*g.mPerColor, meters:g.sets*g.mPerColor*g.colors.length }))
+    .sort((a,b)=>(b.known-a.known)||a.set.localeCompare(b.set,'de',{numeric:true})||a.qs.localeCompare(b.qs,'de',{numeric:true}));
+  return { H, items, list, ref,
+           totalSets:list.reduce((a,g)=>a+g.sets,0), totalMeters:list.reduce((a,g)=>a+g.meters,0),
+           totalVerf:items.reduce((a,it)=>a+it.f.stock,0),
+           totalReserved:items.reduce((a,it)=>a+(it.fba?it.fba.reserved:0),0),
+           totalZulauf:items.reduce((a,it)=>a+(it.fba?it.fba.zulauf:0),0),
+           fbaCount:items.filter(it=>it.fba).length };
+}
+
+function weeklySeries(maps, skus, ref, weeks){
+  const out=[];
+  let first=Infinity; for(const s of skus){ const f=firstDay(maps[s]); if(f<first) first=f; }
+  for(let i=weeks-1;i>=0;i--){
+    const to=ref-7*i, from=to-6;
+    if(to<first) continue;
+    let u=0; for(const s of skus) u+=sumRange(maps[s],from,to);
+    out.push({ to, u });
+  }
+  return out;
+}
+
+/* -------------------------------- Chart ------------------------------ */
+function chartSvg(hist, fc){
+  const W=920, Ht=300, pl=48, pr=14, pt=14, pb=34;
+  const vals=hist.map(h=>h.u).concat(fc.map(f=>f.u));
+  const max=Math.max(1,...vals);
+  const raw=max/4, mag=Math.pow(10,Math.floor(Math.log10(raw)));
+  let step=mag; for(const k of [1,2,2.5,5,10]){ if(k*mag>=raw){ step=k*mag; break; } }
+  const ymax=step*4, n=hist.length+fc.length;
+  const x=i=>pl+(n>1 ? i*(W-pl-pr)/(n-1) : 0);
+  const y=v=>pt+(Ht-pt-pb)*(1-v/ymax);
+  let g='';
+  for(let k=0;k<=4;k++){
+    const v=step*k, yy=y(v);
+    g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="rgba(255,255,255,.1)"/>`;
+    g+=`<text x="${pl-8}" y="${yy+4}" text-anchor="end" fill="#94a6cc" font-size="12">${Math.round(v*10)/10}</text>`;
+  }
+  const pts=hist.map((h,i)=>[x(i),y(h.u)]);
+  let line='', area='';
+  if(pts.length){
+    line='M'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L');
+    area=line+` L${pts[pts.length-1][0].toFixed(1)},${y(0)} L${pts[0][0].toFixed(1)},${y(0)} Z`;
+  }
+  let fline='';
+  if(fc.length&&pts.length){
+    const fp=fc.map((f,j)=>[x(hist.length+j),y(f.u)]);
+    fline='M'+pts[pts.length-1][0].toFixed(1)+','+pts[pts.length-1][1].toFixed(1)+' L'+fp.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L');
+  }
+  const every=Math.max(1,Math.round(n/8));
+  let lab='';
+  const all=hist.map(h=>h.to).concat(fc.map(f=>f.to));
+  for(let i=0;i<all.length;i+=every){
+    lab+=`<text x="${x(i)}" y="${Ht-10}" text-anchor="middle" fill="#94a6cc" font-size="12">${dnToShort(all[i])}</text>`;
+  }
+  const dx=pts.length?pts[pts.length-1][0]:pl;
+  let dots='';
+  hist.forEach((h,i)=>{ dots+=`<circle cx="${x(i)}" cy="${y(h.u)}" r="6" fill="transparent"><title>Woche bis ${dnToDe(h.to)}: ${h.u} Stück</title></circle>`; });
+  fc.forEach((f,j)=>{ dots+=`<circle cx="${x(hist.length+j)}" cy="${y(f.u)}" r="6" fill="transparent"><title>Prognose Woche bis ${dnToDe(f.to)}: ${Math.round(f.u)} Stück</title></circle>`; });
+  return `<svg viewBox="0 0 ${W} ${Ht}" role="img" aria-label="Wöchentliche Verkäufe und Prognose">
+    <defs><linearGradient id="gA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8f23d" stop-opacity=".28"/><stop offset="1" stop-color="#c8f23d" stop-opacity="0"/></linearGradient></defs>
+    ${g}
+    ${area?`<path d="${area}" fill="url(#gA)"/>`:''}
+    ${line?`<path d="${line}" fill="none" stroke="#c8f23d" stroke-width="2.4" stroke-linejoin="round"/>`:''}
+    ${fc.length?`<line x1="${dx}" x2="${dx}" y1="${pt}" y2="${Ht-pb}" stroke="rgba(255,255,255,.35)" stroke-dasharray="2 4"/><text x="${dx+8}" y="${pt+12}" fill="#94a6cc" font-size="12">Prognose</text>`:''}
+    ${fline?`<path d="${fline}" fill="none" stroke="#fff" stroke-width="2.2" stroke-dasharray="6 5" stroke-linejoin="round"/>`:''}
+    ${lab}${dots}</svg>`;
+}
+
+/* ----------------------------- CSV-Export ---------------------------- */
+function listToCsv(res){
+  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  const lines=[['Set','Querschnitt','Farben','Anzahl Sets','Meter je Farbe','Gesamtmeter'].map(q).join(';')];
+  for(const g of res.list){
+    lines.push([g.set,g.qs,g.colors.join(', '),g.sets,g.mPerColor?String(g.perColor).replace('.',','):'',g.mPerColor?String(g.meters).replace('.',','):''].map(q).join(';'));
+  }
+  return '\ufeff'+lines.join('\r\n');
+}
+
+if(typeof module!=='undefined'){
+  module.exports={ parseDate, parseUnits, buildFromCsv, demoData, toMaps, forecastSku, compute, weeklySeries, chartSvg, listToCsv, skuInfo, dn, dnToIso, DEMO_STOCK };
+}
+
+/* =========================== Oberfläche (Browser) ==================== */
+if(typeof document!=='undefined'){
+(function(){
+  const nf0=new Intl.NumberFormat('de-DE',{maximumFractionDigits:0});
+  const nf1=new Intl.NumberFormat('de-DE',{maximumFractionDigits:1,minimumFractionDigits:1});
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const defaults=()=>({ lead:14, cover:30, safety:15, stock:{} });
+
+  let state=null, maps=null, ref=null, ui={ chart:'__all__', confirmReset:false }, error='';
+
+  function load(){
+    try{ const raw=localStorage.getItem(STORE_KEY); if(raw){ state=JSON.parse(raw); const t=toMaps(state.data); maps=t.maps; ref=t.ref; } }
+    catch(e){ state=null; }
+  }
+  function save(){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+    catch(e){ error='Die Daten sind zu groß, um sie im Browser zu speichern. Sie gehen beim Schließen der Seite verloren.'; }
+  }
+  function setData(source,label,data,extra,fba){
+    state={ source, label, saved:Date.now(), data, info:extra||null, fba:fba||{}, settings:defaults() };
+    if(source==='demo'){ state.settings.stock={...DEMO_STOCK}; state.fba={...DEMO_FBA}; }
+    else { for(const sku in state.fba) state.settings.stock[sku]=state.fba[sku].verf; }
+    const t=toMaps(data); maps=t.maps; ref=t.ref; ui.chart='__all__'; error='';
+    save(); render();
+  }
+
+  function startDemo(){
+    const end=Math.floor(Date.now()/DAY)-1;
+    setData('demo','Demo-Daten (erfunden)',demoData(end),null,null);
+  }
+  function readFile(file){
+    if(!file) return;
+    if(file.size>60*1024*1024){ error='Die Datei ist größer als 60 MB.'; render(); return; }
+    const fr=new FileReader();
+    fr.onload=()=>{
+      let text;
+      try{ text=new TextDecoder('utf-8',{fatal:true}).decode(fr.result); }
+      catch(e){ text=new TextDecoder('windows-1252').decode(fr.result); }
+      try{
+        const r=buildFromCsv(text);
+        setData('csv',file.name,r.data,r.info,r.fba);
+      }catch(e){ error=e.message; render(); }
+    };
+    fr.onerror=()=>{ error='Die Datei konnte nicht gelesen werden.'; render(); };
+    fr.readAsArrayBuffer(file);
+  }
+
+  /* ---------- Views ---------- */
+  function emptyView(){
+    return `
+      <h1>Wie viel muss zu Amazon?</h1>
+      <p class="sub">Lade die Verkaufszahlen aus Seller Central als CSV-Datei. Die App berechnet daraus, wie viele Sets pro Artikel produziert und gesendet werden sollten – und wie viele Meter Kabel dafür geschnitten werden müssen.</p>
+      ${error?`<div class="banner demo" role="alert"><b>Fehler:</b> ${esc(error)}</div>`:''}
+      <div class="drop" id="drop" tabindex="0">
+        <p>CSV-Datei hierher ziehen oder auswählen</p>
+        <div class="row">
+          <button class="primary" data-act="pick">CSV-Datei wählen</button>
+          <button data-act="demo">Mit Demo-Daten ausprobieren</button>
+        </div>
+      </div>
+      <p class="note">Die Datei wird nur in diesem Browser verarbeitet. Es gibt keine Verbindung zu Amazon und nichts wird hochgeladen. Benötigt werden Spalten für Datum, Artikelnummer (SKU) und Menge. Enthält die Datei zusätzlich die FBA-Bestandsspalten (afn-fulfillable-quantity u. a.), wird der Bestand automatisch übernommen.</p>`;
+  }
+
+  function fmtTrend(t){
+    if(t==null) return '<span class="flat">–</span>';
+    const p=Math.round(t*100);
+    if(p>=5) return `<span class="up">+${p} %</span>`;
+    if(p<=-5) return `<span class="down">${p} %</span>`;
+    return `<span class="flat">${p>0?'+':''}${p} %</span>`;
+  }
+  function badges(colors){
+    if(!colors.length) return '<span class="tag">nicht zugeordnet</span>';
+    return colors.map(c=>`<span class="badge b-${['Blau','Braun','Gelbgrün','Grau','Schwarz'].includes(c)?c:'other'}">${esc(c)}</span>`).join('');
+  }
+
+  function view(){
+    const res=compute(state,maps,ref);
+    const s=state.settings;
+    const demo=state.source==='demo';
+    const skus=res.items.map(i=>i.sku);
+
+    // Chart
+    let chartSkus = ui.chart==='__all__' ? skus : (skus.includes(ui.chart)?[ui.chart]:skus);
+    const hist=weeklySeries(maps,chartSkus,ref,52);
+    const nFc=Math.max(1,Math.ceil(res.H/7));
+    let daily=0; for(const it of res.items) if(chartSkus.includes(it.sku)) daily+=it.f.daily;
+    const fc=[]; for(let j=1;j<=nFc;j++) fc.push({ to:ref+7*j, u:daily*7 });
+
+    const banner = demo
+      ? `<div class="banner demo"><b>Demo-Daten.</b> Alle Zahlen sind erfunden und nur zum Ausprobieren. Die Artikelnamen sind Beispiele.</div>`
+      : `<div class="banner ok"><b>${esc(state.label)}</b> – ${res.items.length} Artikel, Verkäufe bis ${dnToDe(ref)}${state.info?`, ${nf0.format(state.info.used)} Zeilen gelesen${state.info.skipped?` (${nf0.format(state.info.skipped)} übersprungen)`:''}${state.info.cancelled?`, ${nf0.format(state.info.cancelled)} stornierte Bestellungen ausgeschlossen`:''}`:''}.${state.info&&!state.info.hasSku?' Die Datei enthält keine Artikelnummer, deshalb wird alles als ein Artikel gerechnet.':''}${state.info&&!state.info.hasStock?' Die Datei enthält keine FBA-Bestandsspalten (z. B. afn-fulfillable-quantity) – Bestand bitte unten manuell eintragen.':''}</div>`;
+
+    const stats = demo || res.fbaCount
+      ? `<div class="controls card" style="margin-top:10px">
+          <div class="field"><label>FBA-Bestand gesamt</label><div style="font-size:22px; font-weight:800; color:var(--lime)">${nf0.format(res.totalVerf)} Stk.</div><small>Verfügbar (afn-fulfillable-quantity)</small></div>
+          <div class="field"><label>Reserviert gesamt</label><div style="font-size:22px; font-weight:800">${nf0.format(res.totalReserved)} Stk.</div><small>Nicht im Bestand oben enthalten</small></div>
+          <div class="field"><label>Zulauf gesamt</label><div style="font-size:22px; font-weight:800">${nf0.format(res.totalZulauf)} Stk.</div><small>In Vorbereitung + unterwegs + im Wareneingang</small></div>
+          <div class="field"><label>Artikel mit FBA-Daten</label><div style="font-size:22px; font-weight:800">${nf0.format(res.fbaCount)} / ${nf0.format(res.items.length)}</div><small>Erkannt aus der CSV-Datei</small></div>
+        </div>` : '';
+
+    const listRows=res.list.map(g=>`
+      <tr>
+        <td><b>${esc(g.set)}</b></td>
+        <td>${esc(g.qs)}</td>
+        <td>${badges(g.colors)}</td>
+        <td class="num big">${nf0.format(g.sets)} Sets</td>
+        <td class="num">${g.mPerColor? nf1.format(g.perColor)+' m':'–'}</td>
+        <td class="num big">${g.mPerColor? nf1.format(g.meters)+' m':'–'}</td>
+      </tr>`).join('');
+
+    const itemRows=res.items.map(it=>{
+      const f=it.f, fb=it.fba;
+      const cover = f.cover==null ? '–' : (f.cover>999?'>999':nf0.format(f.cover))+' Tage';
+      const coverCls = f.cover!=null && f.cover<res.H ? 'warn' : '';
+      const season = f.ratio==null ? '<span class="tag">–</span>' : `<span class="tag">${f.factor>=1?'+':''}${Math.round((f.factor-1)*100)} %</span>`;
+      return `<tr>
+        <td><b>${esc(it.sku)}</b>${it.info.known?'':'<div class="tag warn">nicht zugeordnet</div>'}${f.hist<30?`<div class="tag">erst ${f.hist} Tage Verlauf</div>`:''}</td>
+        <td class="num">${nf0.format(Math.round(f.r30*30))} Stk.</td>
+        <td class="num">${nf1.format(f.r7)} / ${nf1.format(f.r30)} / ${nf1.format(f.r90)}</td>
+        <td class="num">${fmtTrend(f.trend)}</td>
+        <td class="num">${season}</td>
+        <td class="num">${nf0.format(Math.ceil(f.target))}</td>
+        <td class="num">${fb?nf0.format(fb.verf):'<span class="tag">–</span>'}</td>
+        <td class="num">${fb?nf0.format(fb.reserved):'<span class="tag">–</span>'}</td>
+        <td class="num">${fb?nf0.format(fb.zulauf):'<span class="tag">–</span>'}</td>
+        <td class="num"><input class="stock" type="number" min="0" step="1" inputmode="numeric" value="${nf0.format(f.stock).replace(/\./g,'')}" data-stock="${esc(it.sku)}" aria-label="Bestand bei Amazon für ${esc(it.sku)}"></td>
+        <td class="num ${coverCls}">${cover}</td>
+        <td class="num big">${nf0.format(f.send)}</td>
+      </tr>`;
+    }).join('');
+
+    return `
+      ${banner}
+      ${stats}
+      ${error?`<div class="banner demo" role="alert">${esc(error)}</div>`:''}
+      <h1>Produktionsliste für Amazon</h1>
+      <p class="sub">Für die nächsten ${res.H} Tage (${s.lead} Tage bis zur Ankunft bei Amazon + ${s.cover} Tage Reichweite), inklusive ${s.safety} % Sicherheitspuffer.</p>
+
+      <section class="controls-sec" style="margin-top:14px">
+        <div class="controls card">
+          <div class="field"><label for="lead">Vorlaufzeit bis Amazon (Tage)</label><input id="lead" type="number" min="0" max="120" value="${s.lead}" data-set="lead"><small>Produktion + Versand + Wareneingang</small></div>
+          <div class="field"><label for="cover">Reichweite nach Ankunft (Tage)</label><input id="cover" type="number" min="1" max="180" value="${s.cover}" data-set="cover"><small>Wie lange soll die Lieferung reichen?</small></div>
+          <div class="field"><label for="safety">Sicherheitspuffer (%)</label><input id="safety" type="number" min="0" max="200" value="${s.safety}" data-set="safety"><small>Aufschlag für Schwankungen</small></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Was produziert werden soll</h2>
+        <div class="head-actions no-print">
+          <button class="primary" data-act="csv">Als CSV herunterladen</button>
+          <button data-act="print">Drucken</button>
+        </div>
+        <div class="scroll">
+          ${res.list.length ? `<table>
+            <thead><tr><th>Set</th><th>Querschnitt</th><th>Farben</th><th class="num">Anzahl Sets</th><th class="num">Meter je Farbe</th><th class="num">Gesamtmeter</th></tr></thead>
+            <tbody>${listRows}</tbody>
+            <tfoot><tr><td colspan="3">Summe</td><td class="num">${nf0.format(res.totalSets)} Sets</td><td></td><td class="num">${nf1.format(res.totalMeters)} m</td></tr></tfoot>
+          </table>` : `<div style="padding:22px">Nichts zu senden: Der Bestand bei Amazon deckt den Bedarf. Trage unten den aktuellen Bestand ein oder verkürze die Reichweite.</div>`}
+        </div>
+      </section>
+
+      <section class="table-sec">
+        <h2>Empfehlung je Artikel</h2>
+        <p class="sub">„Verfügbar“, „Reserviert“ und „Zulauf“ kommen automatisch aus der CSV-Datei (FBA-Lagerbestand). „Bestand“ ist der Wert, mit dem gerechnet wird – anfangs gleich „Verfügbar“, aber von Hand änderbar.</p>
+        <div class="scroll">
+          <table>
+            <thead><tr>
+              <th>Artikel (SKU)</th><th class="num">Verkauf 30 T.</th><th class="num">Ø pro Tag<br><span class="tag">7 / 30 / 90 Tage</span></th><th class="num">Trend<br><span class="tag">7 vs. 30 Tage</span></th>
+              <th class="num">Saison</th><th class="num">Bedarf<br><span class="tag">inkl. Puffer</span></th>
+              <th class="num">Verfügbar<br><span class="tag">aus CSV</span></th><th class="num">Reserviert<br><span class="tag">aus CSV</span></th><th class="num">Zulauf<br><span class="tag">aus CSV</span></th>
+              <th class="num">Bestand<br><span class="tag">änderbar</span></th><th class="num">Reicht noch</th><th class="num">Produzieren</th>
+            </tr></thead>
+            <tbody>${itemRows}</tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="chart-sec">
+        <div class="row" style="justify-content:space-between; margin-bottom:10px">
+          <div><h2>Verkaufskurve und Prognose</h2><p class="sub" style="margin:0">Stück pro Woche, letzte 12 Monate und erwartete Wochen.</p></div>
+          <div class="field" style="min-width:240px"><label for="csku">Artikel</label>
+            <select id="csku" data-chart>
+              <option value="__all__"${ui.chart==='__all__'?' selected':''}>Alle Artikel zusammen</option>
+              ${skus.map(k=>`<option value="${esc(k)}"${ui.chart===k?' selected':''}>${esc(k)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="chart">${chartSvg(hist,fc)}
+          <div class="legend"><span><i></i>Verkauf (Ist)</span><span><i class="f"></i>Prognose</span></div>
+        </div>
+      </section>
+
+      <details>
+        <summary>So wird gerechnet</summary>
+        <ol>
+          <li><b>Verkäufe pro Tag:</b> gewichteter Durchschnitt aus den letzten 7 Tagen (50 %), 30 Tagen (30 %) und 90 Tagen (20 %). Neuere Tage zählen also mehr.</li>
+          <li><b>Saison:</b> Nur wenn mindestens 13 Monate Verlauf vorliegen. Dann wird der gleiche Zeitraum im Vorjahr verglichen. Die Anpassung ist zur Hälfte gewichtet und liegt zwischen −20 % und +40 %. Ohne Vorjahr bleibt der Wert bei „–“.</li>
+          <li><b>Bedarf:</b> Verkäufe pro Tag × (Vorlaufzeit + Reichweite) × (1 + Sicherheitspuffer).</li>
+          <li><b>Bestand:</b> Wird beim Laden der CSV-Datei automatisch mit „Verfügbar“ (afn-fulfillable-quantity) befüllt und ist danach frei änderbar. „Reserviert“ und „Zulauf“ (in Vorbereitung + unterwegs + im Wareneingang) werden nur zur Information angezeigt und nicht automatisch dazugezählt.</li>
+          <li><b>Produzieren:</b> Bedarf minus Bestand, aufgerundet auf ganze Sets.</li>
+          <li><b>Meter:</b> Anzahl Sets × Meter je Farbe × Anzahl Farben. Standard: 5 Farben × 2 m = 10 m pro Set.</li>
+        </ol>
+        <p class="note">Das ist eine Schätzung auf Basis der Vergangenheit. Aktionen, Ausverkauf (Out of Stock) oder Preisänderungen kennt die App nicht.</p>
+      </details>
+
+      <div class="row no-print" style="margin-top:26px">
+        <button data-act="pick">Andere CSV-Datei laden</button>
+        <button data-act="demo">Demo-Daten laden</button>
+        <button data-act="reset">${ui.confirmReset?'Wirklich alles löschen?':'Daten löschen'}</button>
+      </div>`;
+  }
+
+  function render(){
+    const app=document.getElementById('app');
+    app.innerHTML = state ? view() : emptyView();
+    const drop=document.getElementById('drop');
+    if(drop){
+      drop.addEventListener('dragover',e=>{ e.preventDefault(); drop.classList.add('over'); });
+      drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+      drop.addEventListener('drop',e=>{ e.preventDefault(); drop.classList.remove('over'); readFile(e.dataTransfer.files[0]); });
+    }
+  }
+
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('[data-act]'); if(!b) return;
+    const a=b.dataset.act;
+    if(a==='pick') document.getElementById('file').click();
+    else if(a==='demo') startDemo();
+    else if(a==='reset'){ if(!ui.confirmReset){ ui.confirmReset=true; render(); } else { ui.confirmReset=false; try{ localStorage.removeItem(STORE_KEY); }catch(_){} state=null; maps=null; ref=null; error=''; render(); } }
+    else if(a==='print') window.print();
+    else if(a==='csv'){
+      const res=compute(state,maps,ref);
+      const text=listToCsv(res), fname='produktionsliste-'+dnToIso(Math.floor(Date.now()/DAY))+'.csv';
+      (async()=>{
+        try{
+          const dl = (window.claude && window.claude.use) ? await window.claude.use('downloads') : null;
+          if(dl){ await dl.save({ filename:fname, data:text }); return; }
+        }catch(err){ if(err && err.code==='declined') return; }
+        const blob=new Blob([text],{type:'text/csv;charset=utf-8'});
+        const url=URL.createObjectURL(blob), l=document.createElement('a');
+        l.href=url; l.download=fname;
+        document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+      })();
+    }
+  });
+  document.addEventListener('change',e=>{
+    const t=e.target;
+    if(t.id==='file'){ readFile(t.files[0]); t.value=''; return; }
+    if(!state) return;
+    if(t.dataset.set){
+      const lim={lead:[0,120],cover:[1,180],safety:[0,200]}[t.dataset.set];
+      let v=parseInt(t.value,10); if(!isFinite(v)) v=defaults()[t.dataset.set];
+      state.settings[t.dataset.set]=Math.min(lim[1],Math.max(lim[0],v));
+      save(); render();
+    } else if(t.dataset.stock!==undefined){
+      const v=Math.max(0,parseInt(t.value,10)||0);
+      state.settings.stock[t.dataset.stock]=v; save(); render();
+    } else if(t.hasAttribute('data-chart')){ ui.chart=t.value; render(); }
+  });
+
+  load(); render();
+})();
+}
+</script>
+</body>
+</html>
